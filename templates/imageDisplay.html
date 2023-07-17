@@ -1,0 +1,200 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Upload</title>
+    <style>
+      body {
+        justify-content: center;
+        align-items: center;
+        background-color: rgba(255, 255, 255, 0.76);
+        border-radius: 10px;
+      }
+
+      form {
+        position: relative;
+      }
+
+      #butt {
+        position: relative;
+        background-color: rgb(255, 181, 43, 2);
+        margin: 20px;
+        padding: 20px;
+        padding-left: 450px;
+        border-radius: 15px;
+        border-width: 20px 10px;
+        justify-content: center;
+      }
+
+      #imageContainer {
+        display: flex;
+        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-gap: 20px;
+      }
+
+      img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      label[for="files"],
+      label[for="file"] {
+        cursor: pointer;
+        color: #eaf0eb;
+        display: block;
+        padding: 10px;
+        margin: 3px;
+        margin-right: 20%;
+        outline-style: dashed;
+        border-radius: 5px;
+        width: 300px;
+      }
+
+      input[id="files"],
+      input[id="file"] {
+        display: inline-block;
+        width: 0px;
+        padding: 3px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #f5f5f5;
+        cursor: pointer;
+        color: #333;
+        visibility: hidden;
+      }
+
+      button[type="submit"],
+      button#displayBtn,
+      input#predict {
+        display: inline-block;
+        border-radius: 15px;
+        margin: 20px;
+        width: 200px;
+        height: 50px;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        background-color: #4caf50;
+        color: #fff;
+        cursor: pointer;
+        font-size: 14px;
+        align-items: center;
+      }
+
+      div[id="butt"],
+      [id="inp"],
+      [div="ref"] {
+        position: relative;
+      }
+
+      button[type="submit"]:hover,
+      button#displayBtn:hover,
+      input#predict:hover {
+        background-color: #45a049;
+      }
+
+      .displayImg {
+        margin: 20px;
+        padding-top: 10px;
+        border-radius: 10px;
+        background-color: azure;
+        text-align: center;
+      }
+
+      #folder {
+        order: 1;
+        display: inline-block;
+        justify-content: space-around;
+      }
+
+      #ref {
+        order: 2;
+        justify-self: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="butt">
+      <form id="folder">
+        <label for="files" class="btn" style="position:relative">Upload Folder</label>
+        <div id="inp">
+          <input type="file" name="file" id="files" webkitdirectory="true" multiple></input>
+          <button type="submit">Submit</button>
+        </div>
+      </form>
+      <form id="ref">
+        <label for="file" class="btn">Upload Reference</label>
+        <div id="ref">
+          <input type="file" name="file" id="file">
+          <button type="submit">Submit</button>
+        </div>
+      </form>
+      <form action="{{ url_for('predict') }}" method="POST">
+        <input id="predict" type="submit" class="btn-info" value="predict">
+      </form>
+    </div>
+    <div class="displayImg">
+      <button id="displayBtn">Display Images</button>
+      <div id="imageContainer"></div>
+    </div>
+    <script>
+      const form = document.getElementById('folder');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const filesInput = document.getElementById('files');
+
+        const formData = new FormData();
+
+        for (let i = 0; i < filesInput.files.length; i++) {
+          formData.append('files', filesInput.files[i]);
+        }
+
+        fetch('http://localhost:5000/api', {
+          method: 'POST',
+          body: formData,
+        })
+          .then(res => res.json())
+          .then(data => console.log(data));
+      });
+
+      const form2 = document.getElementById('ref');
+      form2.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const formData = new FormData();
+
+        const fileInput = document.getElementById('file');
+        formData.append('file', fileInput.files[0]);
+
+        fetch('http://localhost:5000/ref', {
+          method: 'POST',
+          body: formData,
+        })
+          .then(res => res.json())
+          .then(data => console.log(data));
+      });
+
+      const displayBtn = document.getElementById('displayBtn');
+      displayBtn.addEventListener('click', () => {
+        fetch('http://localhost:5000/getImages')
+          .then(res => res.json())
+          .then(data => {
+            const imageContainer = document.getElementById('imageContainer');
+            imageContainer.innerHTML = '';
+
+            data.forEach(imageUrl => {
+              const img = document.createElement('img');
+              img.src = imageUrl;
+              img.alt = 'Image';
+              imageContainer.appendChild(img);
+            });
+          });
+      });
+    </script>
+  </body>
+</html>
